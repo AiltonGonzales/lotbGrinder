@@ -3,50 +3,54 @@ import re
 from bs4 import BeautifulSoup
 
 baseUrl = "https://www.news.maiden-lotb.com/n3/character-en/"
-characterBase = requests.post(baseUrl)
-characterList = BeautifulSoup(characterBase.text, 'html.parser').find_all(
+
+requestContent = requests.post(baseUrl)
+characterList = BeautifulSoup(requestContent.text, 'html.parser').find_all(
     'div', attrs={'class': 'ch-icon'})
+
 characterUrlList = [character.a.get('href') for character in characterList]
 awakenableCharacterUrlList = []
-print(len(characterUrlList))
 
-i = 0
-for characterUrl in characterUrlList:
+listOfEddies = ['Ed Hunter', 'Frankedstein']
 
-  print('\n======================================\n\n')
-  i += 1
-  if i == 5:
-    break
 
-  response = requests.post(characterUrl, data={})
-  data = BeautifulSoup(response.text, 'html.parser')
-  character = BeautifulSoup(str(data.find(id='content')), 'html.parser')
+for idx, characterUrl in enumerate(characterUrlList):
+    print('\n======================================\n')
 
-  awakenableUrl = character.find('a', attrs={'class': 'awakenable-url'})
+    if idx >= 3:
+        break
 
-  awakenableCharacterUrlList.append(
-      awakenableUrl.get('href')) if awakenableUrl else None
+    data = BeautifulSoup(requests.post(characterUrl).text, 'html.parser')
+    character = BeautifulSoup(str(data.find(id='content')), 'html.parser')
+    awakenableUrl = character.find('a', attrs={'class': 'awakenable-url'})
 
-  characterName = character.find('h1').text
+    awakenableCharacterUrlList.append(
+        awakenableUrl.get('href')) if awakenableUrl else None
 
-  print('va')
-  characterType = 'Eddie' if (characterName.find('Eddie') or ['Ed Hunter', 'Frankedstein'].index(characterName) >= 0) else 'Ally'
+    characterName = character.find('h1').text
 
-  print("Name: ", characterName)
-  print("Class: ", character.find('p', attrs={ 'class': 'disable' }).text)
-  print("Style: ", character.find('div', attrs={ 'class': 'ch-description' }).text)
-  stats = character.find_all('div', attrs={ 'class': 'ch-max-stat-row' })
-  for stat in stats:
-      print(stat.find('div', attrs={ 'class': 'max-stat-name' }).text, ": ", stat.find('div', attrs={ 'class': 'max-stat-num' }).text)
-  talismanPattern = re.compile("slot_")
-  talismanList = character.find_all('img', attrs={ 'src': talismanPattern })
-  talismans = ""
-  for talisman in talismanList:
-    talismans += ("" if talismans == "" else " | ") + str(talisman['src']).replace(".png", "").split('slot_')[1]
-  print("Tal slots: ", talismans)
-  '''
-  skillList = character.find_all('tr', attrs={ 'class': 'skill-table-border-top' })
-  for skill in skillList:
-    skillName = skill.find_all('p')
-    print(skillName[0].text, ": ", skillName[1].text)
-  '''
+    characterType = 'Eddie' if (characterName.__contains__(
+        'Eddie') or listOfEddies.__contains__(characterName)) else 'Ally'
+    print("Name: ", characterName)
+    print("Type: ", characterType)
+    star = character.find('div', attrs={'class': 'stars'}).img.get(
+        'src').replace('.png', '').split('star0')[1]
+    print("Base star: ", star)
+    print("Class: ", character.find('p', attrs={'class': 'disable'}).text)
+    print("Style: ", character.find(
+        'div', attrs={'class': 'ch-description'}).text)
+
+    stats = character.find_all('div', attrs={'class': 'ch-max-stat-row'})
+    for stat in stats:
+        print(stat.find('div', attrs={'class': 'max-stat-name'}).text,
+              ": ", stat.find('div', attrs={'class': 'max-stat-num'}).text)
+
+    talismanPattern = re.compile("slot_")
+    talismanList = character.find_all('img', attrs={'src': talismanPattern})
+    talismans = ""
+
+    for talisman in talismanList:
+        talismans += ("" if talismans == "" else " | ") + \
+            str(talisman['src']).replace(".png", "").split('slot_')[1]
+
+    print("Tal slots: ", talismans)
