@@ -3,7 +3,7 @@ import re
 from bs4 import BeautifulSoup
 
 baseUrl = "https://www.news.maiden-lotb.com/n3/character-en/"
-characterBase = requests.post(baseUrl, data={})
+characterBase = requests.post(baseUrl)
 characterList = BeautifulSoup(characterBase.text, 'html.parser').find_all(
     'div', attrs={'class': 'ch-icon'})
 characterUrlList = [character.a.get('href') for character in characterList]
@@ -30,8 +30,8 @@ for characterUrl in characterUrlList:
   characterName = character.find('h1').text
 
   print('va')
-  characterType = 'Eddie' if (characterName.find('Eddie') or
-  ['Ed Hunter', 'Frankedstein'].index(characterName))
+  characterType = 'Eddie' if (characterName.find('Eddie') or ['Ed Hunter', 'Frankedstein'].index(characterName) >= 0) else 'Ally'
+
   print("Name: ", characterName)
   print("Class: ", character.find('p', attrs={ 'class': 'disable' }).text)
   print("Style: ", character.find('div', attrs={ 'class': 'ch-description' }).text)
